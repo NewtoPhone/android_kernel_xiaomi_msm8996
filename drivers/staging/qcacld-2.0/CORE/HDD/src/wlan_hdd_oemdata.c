@@ -1155,7 +1155,7 @@ static void oem_cmd_handler(const void *data, int data_len, void *ctx, int pid)
 	 * audit note: it is ok to pass a NULL policy here since only
 	 * one attribute is parsed and it is explicitly validated
 	 */
-	if (nla_parse(tb, CLD80211_ATTR_MAX, data, data_len, NULL)) {
+	if (wlan_cfg80211_nla_parse(tb, CLD80211_ATTR_MAX, data, data_len, NULL)) {
 		hddLog(LOGE, FL("Invalid ATTR"));
 		return;
 	}
@@ -1167,14 +1167,14 @@ static void oem_cmd_handler(const void *data, int data_len, void *ctx, int pid)
 
 	msg_len = nla_len(tb[CLD80211_ATTR_DATA]);
 	if (msg_len < sizeof(*msg_hdr)) {
-		hdd_err("runt ATTR_DATA size %d", msg_len);
+		hddLog(LOGE, "runt ATTR_DATA size %d", msg_len);
 		send_oem_err_rsp_nlink_msg(pid, OEM_ERR_NULL_MESSAGE_HEADER);
 		return;
 	}
 
 	msg_hdr = nla_data(tb[CLD80211_ATTR_DATA]);
 	if (msg_len < (sizeof(*msg_hdr) + msg_hdr->length)) {
-		hdd_err("Invalid nl msg len %d, msg hdr len %d",
+		hddLog(LOGE, "Invalid nl msg len %d, msg hdr len %d",
 			msg_len, msg_hdr->length);
 		send_oem_err_rsp_nlink_msg(pid, OEM_ERR_INVALID_MESSAGE_LENGTH);
 		return;
@@ -1197,6 +1197,19 @@ int oem_activate_service(void *hdd_ctx)
 	pHddCtx = (struct hdd_context_s *) hdd_ctx;
 	register_cld_cmd_cb(WLAN_NL_MSG_OEM, oem_cmd_handler, NULL);
 	return 0;
+}
+
+/**
+ * oem_deactivate_service() - API to unregister the oem command handler
+ *
+ * This API is used to deregister the handler to receive netlink message
+ * from an OEM application process
+ *
+ * Return: None
+ */
+void oem_deactivate_service(void)
+{
+	deregister_cld_cmd_cb(WLAN_NL_MSG_OEM);
 }
 #else
 /*
