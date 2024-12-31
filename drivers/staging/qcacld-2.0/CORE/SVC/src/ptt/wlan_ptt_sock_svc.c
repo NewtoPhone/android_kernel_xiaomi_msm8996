@@ -246,14 +246,14 @@ static int ptt_sock_rx_nlink_msg (struct sk_buff * skb)
 static void ptt_cmd_handler(const void *data, int data_len, void *ctx, int pid)
 {
 	uint16_t length;
-	ptt_app_reg_req *payload;
+	struct sptt_app_reg_req *payload;
 	struct nlattr *tb[CLD80211_ATTR_MAX + 1];
 
 	/*
 	 * audit note: it is ok to pass a NULL policy here since a
 	 * length check on the data is added later already
 	 */
-	if (nla_parse(tb, CLD80211_ATTR_MAX, data, data_len, NULL)) {
+	if (wlan_cfg80211_nla_parse(tb, CLD80211_ATTR_MAX, data, data_len, NULL)) {
 		PTT_TRACE(VOS_TRACE_LEVEL_ERROR, "Invalid ATTR");
 		return;
 	}
@@ -263,13 +263,13 @@ static void ptt_cmd_handler(const void *data, int data_len, void *ctx, int pid)
 		return;
 	}
 
-	if (nla_len(tb[CLD80211_ATTR_DATA]) < sizeof(struct ptt_app_reg_req)) {
+	if (nla_len(tb[CLD80211_ATTR_DATA]) < sizeof(struct sptt_app_reg_req)) {
 		PTT_TRACE(VOS_TRACE_LEVEL_ERROR, "%s:attr length check fails\n",
 			__func__);
 		return;
 	}
 
-	payload = (ptt_app_reg_req *)(nla_data(tb[CLD80211_ATTR_DATA]));
+	payload = (struct sptt_app_reg_req *)(nla_data(tb[CLD80211_ATTR_DATA]));
 	length = be16_to_cpu(payload->wmsg.length);
 
 	if (nla_len(tb[CLD80211_ATTR_DATA]) <  (length +
